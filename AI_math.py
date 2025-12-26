@@ -19,7 +19,7 @@ if 'input_text' not in st.session_state: st.session_state.input_text = ""
 def add_s(s): st.session_state.input_text += s
 
 with st.expander("MO BANG KY HIEU TOAN HOC"):
-    c1, c2, c3, c4 = st.columns(4)
+  c1, c2, c3, c4 = st.columns(4)
     with c1:
         if st.button("Phan so"): add_s("\\frac{}{}")
         if st.button("Can"): add_s("\\sqrt{}")

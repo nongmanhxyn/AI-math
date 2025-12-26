@@ -45,16 +45,36 @@ st.header("Khu vuc ve hinh")
 loai_hinh = st.radio("Chon loai hinh muon ve:", ["Do thi ham so", "Bieu do (Cot/Quat)", "Toan hinh hoc"])
 
 if loai_hinh == "Do thi ham so":
-    ham = st.text_input("Nhap ham (VD: x**2, np.sin(x)):")
+    ham = st.text_input("Nhap ham (VD: y=x**2, np.sin(x)):")
     if ham:
         try:
+            # Tu dong lay phan sau dau "=" neu b nhap y=...
+            ham_clean = ham.split('=')[-1].strip()
+            
             x = np.linspace(-10, 10, 400)
-            y = eval(ham.replace('^', '**'), {"np": np, "x": x})
-            fig, ax = plt.subplots()
-            ax.plot(x, y)
-            ax.grid(True)
+            y = eval(ham_clean.replace('^', '**'), {"np": np, "x": x})
+            
+            # Tao khung hinh vuong de ty le x, y khong bi lech
+            fig, ax = plt.subplots(figsize=(7, 7))
+            ax.plot(x, y, label=f"y = {ham_clean}", color='blue', linewidth=2)
+            
+            # Thiet lap truc Oxy chuan
+            ax.set_aspect('equal', adjustable='datalim')
+            ax.axhline(y=0, color='black', linewidth=1.5) # Truc Ox
+            ax.axvline(x=0, color='black', linewidth=1.5) # Truc Oy
+            
+            # Gioi han khung nhin de b thay duoc vach chia
+            ax.set_xlim(-11, 11)
+            
+            # Them ten truc
+            ax.set_xlabel('x', loc='right')
+            ax.set_ylabel('y', loc='top', rotation=0)
+            ax.grid(True, linestyle='--', alpha=0.6)
+            ax.legend()
+            
             st.pyplot(fig)
-        except: st.write("Check lai cu phap np.sin(x) hoac x**2 nhe!")
+        except Exception as e: 
+            st.write(f"Check lai cu phap nhe! Loi: {e}")
 
 elif loai_hinh == "Bieu do (Cot/Quat)":
     kieu = st.selectbox("Chon kieu bieu do:", ["Cot", "Quat (Tron)", "Tranh (Diem)"])
@@ -68,7 +88,7 @@ elif loai_hinh == "Bieu do (Cot/Quat)":
         st.pyplot(fig)
 
 elif loai_hinh == "Toan hinh hoc":
-    st.write("AI se mo ta cach ve hinh hoc (Tam giac, Duong tron) o phan loi giai nhe!")
+    st.info("B vao GeoGebra ve cho chuan nhe, hoac xem AI mo ta cach ve o duoi!")
 
 # --- 3. NUT GIAI ---
 if st.button("GIAI NGAY"):
@@ -81,7 +101,7 @@ if st.button("GIAI NGAY"):
             try:
                 chat = client.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": "Ban la chuyen gia toan. Giai chi tiet bang tieng Viet KHONG DAU. Dung Latex $...$"},
+                        {"role": "system", "content": "Ban la chuyen gia toan. Giai chi tiet bang tieng Viet KHONG DAU. Neu la hinh hoc hay mo ta chi tiet cach ve va ky hieu. Dung Latex $...$"},
                         {"role": "user", "content": f"De: {user_input}. KQ: {wolf_res}"}
                     ],
                     model="llama-3.3-70b-versatile",

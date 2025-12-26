@@ -48,31 +48,36 @@ if loai_hinh == "Do thi ham so":
     ham = st.text_input("Nhap ham (VD: y=x**2, np.sin(x)):")
     if ham:
         try:
-            # Tu dong lay phan sau dau "=" neu b nhap y=...
             ham_clean = ham.split('=')[-1].strip()
+            # Dung vung du lieu rong de AI ve muot
+            x_plot = np.linspace(-20, 20, 1000)
+            y_plot = eval(ham_clean.replace('^', '**'), {"np": np, "x": x_plot})
             
-            x = np.linspace(-10, 10, 400)
-            y = eval(ham_clean.replace('^', '**'), {"np": np, "x": x})
+            # Chinh figsize=(5,5) de anh be gon
+            fig, ax = plt.subplots(figsize=(5, 5))
+            ax.plot(x_plot, y_plot, label=f"y = {ham_clean}", color='blue', linewidth=2)
             
-            # Tao khung hinh vuong de ty le x, y khong bi lech
-            fig, ax = plt.subplots(figsize=(7, 7))
-            ax.plot(x, y, label=f"y = {ham_clean}", color='blue', linewidth=2)
+            # CAN GIUA DOI XUNG: x va y deu tu -10 den 10
+            ax.set_xlim(-10, 10)
+            ax.set_ylim(-10, 10)
             
-            # Thiet lap truc Oxy chuan
-            ax.set_aspect('equal', adjustable='datalim')
-            ax.axhline(y=0, color='black', linewidth=1.5) # Truc Ox
-            ax.axvline(x=0, color='black', linewidth=1.5) # Truc Oy
+            # He truc Oxy chuan
+            ax.set_aspect('equal')
+            ax.axhline(y=0, color='black', linewidth=1.2)
+            ax.axvline(x=0, color='black', linewidth=1.2)
             
-            # Gioi han khung nhin de b thay duoc vach chia
-            ax.set_xlim(-11, 11)
+            # Vach chia so cho chuyen nghiep
+            ax.set_xticks(np.arange(-10, 11, 2))
+            ax.set_yticks(np.arange(-10, 11, 2))
+            ax.grid(True, linestyle=':', alpha=0.6)
             
-            # Them ten truc
             ax.set_xlabel('x', loc='right')
             ax.set_ylabel('y', loc='top', rotation=0)
-            ax.grid(True, linestyle='--', alpha=0.6)
-            ax.legend()
             
-            st.pyplot(fig)
+            # Dua vao cot de anh khong bi to qua
+            c_left, c_mid, c_right = st.columns([1, 2, 1])
+            with c_mid:
+                st.pyplot(fig)
         except Exception as e: 
             st.write(f"Check lai cu phap nhe! Loi: {e}")
 
@@ -80,12 +85,15 @@ elif loai_hinh == "Bieu do (Cot/Quat)":
     kieu = st.selectbox("Chon kieu bieu do:", ["Cot", "Quat (Tron)", "Tranh (Diem)"])
     data_raw = st.text_input("Nhap so lieu (VD: 10, 20, 30):")
     if data_raw:
-        data = [float(x) for x in data_raw.split(',')]
-        fig, ax = plt.subplots()
+        data = [float(i) for i in data_raw.split(',')]
+        fig, ax = plt.subplots(figsize=(5, 5))
         if kieu == "Cot": ax.bar(range(len(data)), data)
-        elif kieu == "Quat (Tron)": ax.pie(data, labels=[f"Phan {i+1}" for i in range(len(data))])
+        elif kieu == "Quat (Tron)": ax.pie(data, labels=[f"P{i+1}" for i in range(len(data))])
         else: ax.scatter(range(len(data)), data)
-        st.pyplot(fig)
+        
+        c_left, c_mid, c_right = st.columns([1, 2, 1])
+        with c_mid:
+            st.pyplot(fig)
 
 elif loai_hinh == "Toan hinh hoc":
     st.info("B vao GeoGebra ve cho chuan nhe, hoac xem AI mo ta cach ve o duoi!")

@@ -74,7 +74,6 @@ elif loai_hinh == "Bieu do (Cot/Quat)":
 
 elif loai_hinh == "Toan hinh hoc":
     st.subheader("📐 Bang ve GeoGebra Classic")
-    # NHUNG BANG VE XIN
     components.iframe("https://www.geogebra.org/classic", height=600)
     st.warning("⚠️ CHU Y: Copy cac dong trong muc 'LENH VE GEO' o duoi cung roi dan vao o Input (dau +) cua bang ve tren.")
 
@@ -90,11 +89,14 @@ if st.button("🔥 GIAI NGAY"):
             try:
                 chat = client.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": """Chuyen gia toan. Giai chi tiet (Tieng Viet khong dau). 
-                        BAT BUOC: Neu la bai hinh hoc, cuoi loi giai phai co muc:
-                        ### LENH VE GEO
-                        [Cac lenh ve cach nhau bang dau cham phay]
-                        VD: A=(0,0); B=(4,0); C=(0,3); Polygon(A,B,C)"""},
+                        {"role": "system", "content": """Ban la chuyen gia toan hinh hoc Geogebra.
+                        1. Giai chi tiet (Tieng Viet khong dau). 
+                        2. BAT BUOC cuoi loi giai phai co muc: ### LENH VE GEO.
+                        3. DIEU KIEN VE TAM GIAC:
+                           - Neu de chi noi 'Cho tam giac ABC' (khong noi gi them): VE TAM GIAC THUONG (nhon hoac tu), TUYET DOI khong ve tam giac vuong hoac can. 
+                           - VD tam giac thuong: A=(0,5); B=(-3,0); C=(4,0).
+                           - Chi khi nao de ghi ro 'vuong', 'can', 'deu' thi moi duoc ve dac biet.
+                        4. DUNG LENH QUAN HE: Midpoint(), PerpendicularLine(), Circle(), Intersect() thay vi tu tinh toa do le."""},
                         {"role": "user", "content": f"De: {user_input}. KQ: {wolf_res}"}
                     ],
                     model="llama-3.3-70b-versatile",

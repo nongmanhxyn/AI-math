@@ -10,7 +10,7 @@ try:
     GROQ_KEY = st.secrets["GROQ_KEY"]
     WOLFRAM_ID = st.secrets["WOLFRAM_ID"]
 except:
-    st.error("Thieu API Key trong Secrets! Vui long kiem tra lai.")
+    st.error("Thieu API Key trong Secrets!")
     st.stop()
 
 client = Groq(api_key=GROQ_KEY)
@@ -32,71 +32,59 @@ with st.expander("⌨️ MO BANG KY HIEU TOAN HOC"):
     with c2:
         if st.button("Tam giac"): add_s("\\Delta ")
         if st.button("Goc"): add_s("\\angle ")
-        if st.button("Vong cung"): add_s("\\widehat{}")
     with c3:
         if st.button("Song song"): add_s(" \\parallel ")
         if st.button("Vuong goc"): add_s(" \\perp ")
-        if st.button("Trung"): add_s(" \\equiv ")
     with c4:
         if st.button("Sigma"): add_s("\\Sigma ")
         if st.button("Tich phan"): add_s("\\int ")
-        if st.button("Vo cuc"): add_s("\\infty")
 
 user_input = st.text_area("📝 Nhap de bai:", value=st.session_state.input_text, height=100)
 st.session_state.input_text = user_input
 
 # --- 2. KHU VUC VE HINH ---
 st.header("🎨 Khu vuc ve hinh")
-loai_hinh = st.radio("Chon loai hinh muon ve:", ["Do thi ham so", "Bieu do (Cot/Quat)", "Toan hinh hoc"])
+loai_hinh = st.radio("Chon loai hinh:", ["Do thi ham so", "Toan hinh hoc"])
 
 if loai_hinh == "Do thi ham so":
-    ham = st.text_input("Nhap ham (VD: y=x**2, np.sin(x)):")
+    ham = st.text_input("Nhap ham (VD: y=x**2):")
     if ham:
         try:
             ham_clean = ham.split('=')[-1].strip()
-            x_plot = np.linspace(-20, 20, 1000)
+            x_plot = np.linspace(-10, 10, 400)
             y_plot = eval(ham_clean.replace('^', '**'), {"np": np, "x": x_plot})
             fig, ax = plt.subplots(figsize=(4, 4))
-            ax.plot(x_plot, y_plot, color='blue', linewidth=2)
-            ax.set_xlim(-10, 10); ax.set_ylim(-10, 10); ax.set_aspect('equal')
-            ax.axhline(y=0, color='black', linewidth=1.2); ax.axvline(x=0, color='black', linewidth=1.2)
-            ax.grid(True, linestyle=':', alpha=0.6)
+            ax.plot(x_plot, y_plot)
+            ax.axhline(0, color='black'); ax.axvline(0, color='black')
             st.pyplot(fig)
-        except Exception as e: st.write(f"Loi: {e}")
-
-elif loai_hinh == "Bieu do (Cot/Quat)":
-    data_raw = st.text_input("Nhap so lieu (VD: 10, 20, 30):")
-    if data_raw:
-        data = [float(i) for i in data_raw.split(',')]
-        fig, ax = plt.subplots(figsize=(4, 4))
-        ax.bar(range(len(data)), data)
-        st.pyplot(fig)
+        except: st.write("Loi cu phap!")
 
 elif loai_hinh == "Toan hinh hoc":
     st.subheader("📐 Bang ve GeoGebra Classic")
     components.iframe("https://www.geogebra.org/classic", height=600)
-    st.warning("⚠️ CHU Y: Copy cac dong trong muc 'LENH VE GEO' o duoi cung roi dan vao o Input (dau +) cua bang ve tren.")
+    st.info("💡 Copy code trong o mau xam phia duoi dan vao o Input (+) cua GeoGebra.")
 
 # --- 3. NUT GIAI ---
 if st.button("🔥 GIAI NGAY"):
     if user_input:
-        with st.spinner("AI dang tinh toan..."):
+        with st.spinner("AI dang tinh..."):
             try:
                 res = wolf_client.query(user_input)
                 wolf_res = next(res.results).text
-            except: wolf_res = "Khong co du lieu so hoc."
+            except: wolf_res = "Khong co so lieu."
             
             try:
                 chat = client.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": """Ban la chuyen gia toan hinh hoc Geogebra.
-                        1. Giai chi tiet (Tieng Viet khong dau). 
-                        2. BAT BUOC cuoi loi giai phai co muc: ### LENH VE GEO.
-                        3. DIEU KIEN VE TAM GIAC:
-                           - Neu de chi noi 'Cho tam giac ABC' (khong noi gi them): VE TAM GIAC THUONG (nhon hoac tu), TUYET DOI khong ve tam giac vuong hoac can. 
-                           - VD tam giac thuong: A=(0,5); B=(-3,0); C=(4,0).
-                           - Chi khi nao de ghi ro 'vuong', 'can', 'deu' thi moi duoc ve dac biet.
-                        4. DUNG LENH QUAN HE: Midpoint(), PerpendicularLine(), Circle(), Intersect() thay vi tu tinh toa do le."""},
+                        {"role": "system", "content": """Ban la chuyen gia hinh hoc Geogebra. 
+                        NHIEM VU:
+                        1. Giai chi tiet bang tieng Viet khong dau.
+                        2. BAT BUOC: Cuoi cung phai co muc '### LENH VE GEO'.
+                        3. TRONG MUC NAY, CHI DUOC VIET CODE, KHONG VIET CHU. 
+                        4. QUY TAC VE:
+                           - Luon dat A=(0,5); B=(-3,0); C=(4,0) de tam giac khong bi dac biet (neu de ko yeu cau).
+                           - Dung lenh quan he: PerpendicularLine, Midpoint, Circle, Intersect.
+                           - VD: A=(0,5); B=(-3,0); C=(4,0); Polygon(A,B,C); h=PerpendicularLine(A, Line(B,C))"""},
                         {"role": "user", "content": f"De: {user_input}. KQ: {wolf_res}"}
                     ],
                     model="llama-3.3-70b-versatile",

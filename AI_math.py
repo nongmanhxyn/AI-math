@@ -6,7 +6,6 @@ import numpy as np
 import streamlit.components.v1 as components
 
 # --- 0. CAU HINH API KEY ---
-# Luu y: B phai vao Settings -> Secrets tren Streamlit Cloud de dien key vao nhe
 try:
     GROQ_KEY = st.secrets["GROQ_KEY"]
     WOLFRAM_ID = st.secrets["WOLFRAM_ID"]
@@ -57,57 +56,49 @@ if loai_hinh == "Do thi ham so":
             ham_clean = ham.split('=')[-1].strip()
             x_plot = np.linspace(-20, 20, 1000)
             y_plot = eval(ham_clean.replace('^', '**'), {"np": np, "x": x_plot})
-            fig, ax = plt.subplots(figsize=(5, 5))
+            fig, ax = plt.subplots(figsize=(4, 4))
             ax.plot(x_plot, y_plot, color='blue', linewidth=2)
             ax.set_xlim(-10, 10); ax.set_ylim(-10, 10); ax.set_aspect('equal')
             ax.axhline(y=0, color='black', linewidth=1.2); ax.axvline(x=0, color='black', linewidth=1.2)
             ax.grid(True, linestyle=':', alpha=0.6)
-            c_l, c_m, c_r = st.columns([1, 2, 1])
-            with c_m: st.pyplot(fig)
+            st.pyplot(fig)
         except Exception as e: st.write(f"Loi: {e}")
 
 elif loai_hinh == "Bieu do (Cot/Quat)":
     data_raw = st.text_input("Nhap so lieu (VD: 10, 20, 30):")
     if data_raw:
         data = [float(i) for i in data_raw.split(',')]
-        fig, ax = plt.subplots(figsize=(5, 5))
+        fig, ax = plt.subplots(figsize=(4, 4))
         ax.bar(range(len(data)), data)
-        c_l, c_m, c_r = st.columns([1, 2, 1])
-        with c_m: st.pyplot(fig)
+        st.pyplot(fig)
 
 elif loai_hinh == "Toan hinh hoc":
     st.subheader("📐 Bang ve GeoGebra Classic")
-    # Nhung GeoGebra vao web
-    components.iframe("https://www.geogebra.org/classic", height=550)
-    st.info("💡 Copy lenh '### LENH VE GEO' o ben duoi loi giai roi dan vao o Input cua GeoGebra")
+    # NHUNG BANG VE XIN
+    components.iframe("https://www.geogebra.org/classic", height=600)
+    st.warning("⚠️ CHU Y: Copy cac dong trong muc 'LENH VE GEO' o duoi cung roi dan vao o Input (dau +) cua bang ve tren.")
 
 # --- 3. NUT GIAI ---
 if st.button("🔥 GIAI NGAY"):
     if user_input:
         with st.spinner("AI dang tinh toan..."):
-            # 1. Goi WolframAlpha de lay dap an so hoc
             try:
                 res = wolf_client.query(user_input)
                 wolf_res = next(res.results).text
             except: wolf_res = "Khong co du lieu so hoc."
             
-            # 2. Goi Groq AI de giai chi tiet va tao lenh ve
             try:
                 chat = client.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": """Ban la chuyen gia toan hoc cap cao.
-                        NHIEM VU:
-                        1. Giai chi tiet tung buoc bang tieng Viet KHONG DAU.
-                        2. BAT BUOC: Neu la bai hinh hoc, phai co mot muc rieng ten la '### LENH VE GEO'.
-                        3. Trong muc do, cung cap cac lenh GeoGebra (GGBScript) de ve hinh.
-                        4. Phai co ky hieu goc vuong Angle(A, B, C), ky hieu doan thang bang nhau SetDecoration.
-                        VD: A=(0,0); B=(4,0); C=(0,3); Polygon(A,B,C); SetValue(a, true)"""},
-                        {"role": "user", "content": f"De bài: {user_input}. Ket qua tham khao: {wolf_res}"}
+                        {"role": "system", "content": """Chuyen gia toan. Giai chi tiet (Tieng Viet khong dau). 
+                        BAT BUOC: Neu la bai hinh hoc, cuoi loi giai phai co muc:
+                        ### LENH VE GEO
+                        [Cac lenh ve cach nhau bang dau cham phay]
+                        VD: A=(0,0); B=(4,0); C=(0,3); Polygon(A,B,C)"""},
+                        {"role": "user", "content": f"De: {user_input}. KQ: {wolf_res}"}
                     ],
                     model="llama-3.3-70b-versatile",
                 )
-                st.success("Da giai xong!")
-                # HIEN THI KET QUA
+                st.success("Xong!")
                 st.markdown(chat.choices[0].message.content)
-            except Exception as e: 
-                st.error(f"Loi he thong AI: {e}")
+            except Exception as e: st.error(f"Loi: {e}")

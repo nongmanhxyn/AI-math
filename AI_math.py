@@ -52,44 +52,28 @@ if loai_hinh == "Do thi ham so":
             ham_clean = ham.split('=')[-1].strip()
             x_plot = np.linspace(-20, 20, 1000)
             y_plot = eval(ham_clean.replace('^', '**'), {"np": np, "x": x_plot})
-            
             fig, ax = plt.subplots(figsize=(5, 5))
-            ax.plot(x_plot, y_plot, label=f"y = {ham_clean}", color='blue', linewidth=2)
-            
-            ax.set_xlim(-10, 10)
-            ax.set_ylim(-10, 10)
-            ax.set_aspect('equal')
-            ax.axhline(y=0, color='black', linewidth=1.2)
-            ax.axvline(x=0, color='black', linewidth=1.2)
-            ax.set_xticks(np.arange(-10, 11, 2))
-            ax.set_yticks(np.arange(-10, 11, 2))
+            ax.plot(x_plot, y_plot, color='blue', linewidth=2)
+            ax.set_xlim(-10, 10); ax.set_ylim(-10, 10); ax.set_aspect('equal')
+            ax.axhline(y=0, color='black', linewidth=1.2); ax.axvline(x=0, color='black', linewidth=1.2)
             ax.grid(True, linestyle=':', alpha=0.6)
-            
-            c_left, c_mid, c_right = st.columns([1, 2, 1])
-            with c_mid:
-                st.pyplot(fig)
-        except Exception as e: 
-            st.write(f"Check lai cu phap nhe! Loi: {e}")
+            c_l, c_m, c_r = st.columns([1, 2, 1])
+            with c_m: st.pyplot(fig)
+        except Exception as e: st.write(f"Loi: {e}")
 
 elif loai_hinh == "Bieu do (Cot/Quat)":
-    kieu = st.selectbox("Chon kieu bieu do:", ["Cot", "Quat (Tron)", "Tranh (Diem)"])
     data_raw = st.text_input("Nhap so lieu (VD: 10, 20, 30):")
     if data_raw:
         data = [float(i) for i in data_raw.split(',')]
         fig, ax = plt.subplots(figsize=(5, 5))
-        if kieu == "Cot": ax.bar(range(len(data)), data)
-        elif kieu == "Quat (Tron)": ax.pie(data, labels=[f"P{i+1}" for i in range(len(data))])
-        else: ax.scatter(range(len(data)), data)
-        
-        c_left, c_mid, c_right = st.columns([1, 2, 1])
-        with c_mid:
-            st.pyplot(fig)
+        ax.bar(range(len(data)), data)
+        c_l, c_m, c_r = st.columns([1, 2, 1])
+        with c_m: st.pyplot(fig)
 
 elif loai_hinh == "Toan hinh hoc":
     st.subheader("Bang ve GeoGebra Classic")
-    # Nhúng GeoGebra Classic trực tiếp
-    components.iframe("https://www.geogebra.org/classic", height=600)
-    st.info("💡 Cach dung: Copy cac lenh ve tu AI ben duoi, dan vao o 'Input' (dau cộng) trong bang GeoGebra nhe!")
+    components.iframe("https://www.geogebra.org/classic", height=500)
+    st.info("💡 Copy lenh ben duoi dan vao o Input cua GeoGebra")
 
 # --- 3. NUT GIAI ---
 if st.button("GIAI NGAY"):
@@ -102,11 +86,12 @@ if st.button("GIAI NGAY"):
             try:
                 chat = client.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": """Ban la chuyen gia toan. 
-                        - Giai chi tiet bang tieng Viet KHONG DAU.
-                        - Dung Latex $...$ cho cong thuc.
-                        - NEU LA BAI HINH HOC: Hay cung cap danh sach lenh GeoGebra (GGBScript) de ve hinh chinh xac.
-                        VD: A = (0, 0); B = (5, 0); C = (2, 4); Polygon(A, B, C); Segment(A, B)"""},
+                        {"role": "system", "content": """Ban la chuyen gia toan hoc. 
+                        NHIEM VU:
+                        1. Giai chi tiet bang tieng Viet KHONG DAU.
+                        2. BAT BUOC: Neu la bai hinh hoc, phai co muc '### LENH VE GEO' chua code GGBScript.
+                        3. Trong code ve, phai co ky hieu goc vuong neu co (dung lenh 'Angle(A, B, C)'), ky hieu bang nhau (dung 'SetDecoration').
+                        VD code: A=(0,0); B=(4,0); C=(0,3); Polygon(A,B,C)"""},
                         {"role": "user", "content": f"De: {user_input}. KQ: {wolf_res}"}
                     ],
                     model="llama-3.3-70b-versatile",

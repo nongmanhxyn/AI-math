@@ -5,21 +5,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 import streamlit.components.v1 as components
 
-# --- API KEY ---
-GROQ_KEY = st.secrets["GROQ_KEY"]
-WOLFRAM_ID = st.secrets["WOLFRAM_ID"]
+# --- 0. CAU HINH API KEY ---
+# Luu y: B phai vao Settings -> Secrets tren Streamlit Cloud de dien key vao nhe
+try:
+    GROQ_KEY = st.secrets["GROQ_KEY"]
+    WOLFRAM_ID = st.secrets["WOLFRAM_ID"]
+except:
+    st.error("Thieu API Key trong Secrets! Vui long kiem tra lai.")
+    st.stop()
 
 client = Groq(api_key=GROQ_KEY)
 wolf_client = wolframalpha.Client(WOLFRAM_ID)
 
 st.set_page_config(page_title="AI Toan Dien", layout="wide")
-st.title("AI GIAI TOAN & VE HINH (KHONG DAU)")
+st.title("🚀 AI GIAI TOAN & VE HINH CHUAN")
 
 # --- 1. BANG KY HIEU ---
 if 'input_text' not in st.session_state: st.session_state.input_text = ""
 def add_s(s): st.session_state.input_text += s
 
-with st.expander("MO BANG KY HIEU TOAN HOC"):
+with st.expander("⌨️ MO BANG KY HIEU TOAN HOC"):
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         if st.button("Phan so"): add_s("\\frac{}{}")
@@ -38,11 +43,11 @@ with st.expander("MO BANG KY HIEU TOAN HOC"):
         if st.button("Tich phan"): add_s("\\int ")
         if st.button("Vo cuc"): add_s("\\infty")
 
-user_input = st.text_area("Nhap de bai:", value=st.session_state.input_text, height=100)
+user_input = st.text_area("📝 Nhap de bai:", value=st.session_state.input_text, height=100)
 st.session_state.input_text = user_input
 
 # --- 2. KHU VUC VE HINH ---
-st.header("Khu vuc ve hinh")
+st.header("🎨 Khu vuc ve hinh")
 loai_hinh = st.radio("Chon loai hinh muon ve:", ["Do thi ham so", "Bieu do (Cot/Quat)", "Toan hinh hoc"])
 
 if loai_hinh == "Do thi ham so":
@@ -71,31 +76,38 @@ elif loai_hinh == "Bieu do (Cot/Quat)":
         with c_m: st.pyplot(fig)
 
 elif loai_hinh == "Toan hinh hoc":
-    st.subheader("Bang ve GeoGebra Classic")
-    components.iframe("https://www.geogebra.org/classic", height=500)
-    st.info("💡 Copy lenh ben duoi dan vao o Input cua GeoGebra")
+    st.subheader("📐 Bang ve GeoGebra Classic")
+    # Nhung GeoGebra vao web
+    components.iframe("https://www.geogebra.org/classic", height=550)
+    st.info("💡 Copy lenh '### LENH VE GEO' o ben duoi loi giai roi dan vao o Input cua GeoGebra")
 
 # --- 3. NUT GIAI ---
-if st.button("GIAI NGAY"):
+if st.button("🔥 GIAI NGAY"):
     if user_input:
-        with st.spinner("AI dang giai..."):
+        with st.spinner("AI dang tinh toan..."):
+            # 1. Goi WolframAlpha de lay dap an so hoc
             try:
                 res = wolf_client.query(user_input)
                 wolf_res = next(res.results).text
-            except: wolf_res = "Khong co du lieu."
+            except: wolf_res = "Khong co du lieu so hoc."
+            
+            # 2. Goi Groq AI de giai chi tiet va tao lenh ve
             try:
                 chat = client.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": """Ban la chuyen gia toan hoc. 
+                        {"role": "system", "content": """Ban la chuyen gia toan hoc cap cao.
                         NHIEM VU:
-                        1. Giai chi tiet bang tieng Viet KHONG DAU.
-                        2. BAT BUOC: Neu la bai hinh hoc, phai co muc '### LENH VE GEO' chua code GGBScript.
-                        3. Trong code ve, phai co ky hieu goc vuong neu co (dung lenh 'Angle(A, B, C)'), ky hieu bang nhau (dung 'SetDecoration').
-                        VD code: A=(0,0); B=(4,0); C=(0,3); Polygon(A,B,C)"""},
-                        {"role": "user", "content": f"De: {user_input}. KQ: {wolf_res}"}
+                        1. Giai chi tiet tung buoc bang tieng Viet KHONG DAU.
+                        2. BAT BUOC: Neu la bai hinh hoc, phai co mot muc rieng ten la '### LENH VE GEO'.
+                        3. Trong muc do, cung cap cac lenh GeoGebra (GGBScript) de ve hinh.
+                        4. Phai co ky hieu goc vuong Angle(A, B, C), ky hieu doan thang bang nhau SetDecoration.
+                        VD: A=(0,0); B=(4,0); C=(0,3); Polygon(A,B,C); SetValue(a, true)"""},
+                        {"role": "user", "content": f"De bài: {user_input}. Ket qua tham khao: {wolf_res}"}
                     ],
                     model="llama-3.3-70b-versatile",
                 )
-                st.success("Xong!")
+                st.success("Da giai xong!")
+                # HIEN THI KET QUA
                 st.markdown(chat.choices[0].message.content)
-            except Exception as e: st.error(f"Loi: {e}")
+            except Exception as e: 
+                st.error(f"Loi he thong AI: {e}")

@@ -3,6 +3,7 @@ from groq import Groq
 import wolframalpha
 import matplotlib.pyplot as plt
 import numpy as np
+import streamlit.components.v1 as components
 
 # --- API KEY ---
 GROQ_KEY = st.secrets["GROQ_KEY"]
@@ -49,32 +50,21 @@ if loai_hinh == "Do thi ham so":
     if ham:
         try:
             ham_clean = ham.split('=')[-1].strip()
-            # Dung vung du lieu rong de AI ve muot
             x_plot = np.linspace(-20, 20, 1000)
             y_plot = eval(ham_clean.replace('^', '**'), {"np": np, "x": x_plot})
             
-            # Chinh figsize=(5,5) de anh be gon
             fig, ax = plt.subplots(figsize=(5, 5))
             ax.plot(x_plot, y_plot, label=f"y = {ham_clean}", color='blue', linewidth=2)
             
-            # CAN GIUA DOI XUNG: x va y deu tu -10 den 10
             ax.set_xlim(-10, 10)
             ax.set_ylim(-10, 10)
-            
-            # He truc Oxy chuan
             ax.set_aspect('equal')
             ax.axhline(y=0, color='black', linewidth=1.2)
             ax.axvline(x=0, color='black', linewidth=1.2)
-            
-            # Vach chia so cho chuyen nghiep
             ax.set_xticks(np.arange(-10, 11, 2))
             ax.set_yticks(np.arange(-10, 11, 2))
             ax.grid(True, linestyle=':', alpha=0.6)
             
-            ax.set_xlabel('x', loc='right')
-            ax.set_ylabel('y', loc='top', rotation=0)
-            
-            # Dua vao cot de anh khong bi to qua
             c_left, c_mid, c_right = st.columns([1, 2, 1])
             with c_mid:
                 st.pyplot(fig)
@@ -96,7 +86,10 @@ elif loai_hinh == "Bieu do (Cot/Quat)":
             st.pyplot(fig)
 
 elif loai_hinh == "Toan hinh hoc":
-    st.info("B vao GeoGebra ve cho chuan nhe, hoac xem AI mo ta cach ve o duoi!")
+    st.subheader("Bang ve GeoGebra Classic")
+    # Nhúng GeoGebra Classic trực tiếp
+    components.iframe("https://www.geogebra.org/classic", height=600)
+    st.info("💡 Cach dung: Copy cac lenh ve tu AI ben duoi, dan vao o 'Input' (dau cộng) trong bang GeoGebra nhe!")
 
 # --- 3. NUT GIAI ---
 if st.button("GIAI NGAY"):
@@ -109,7 +102,11 @@ if st.button("GIAI NGAY"):
             try:
                 chat = client.chat.completions.create(
                     messages=[
-                        {"role": "system", "content": "Ban la chuyen gia toan. Giai chi tiet bang tieng Viet KHONG DAU. Neu la hinh hoc hay mo ta chi tiet cach ve va ky hieu. Dung Latex $...$"},
+                        {"role": "system", "content": """Ban la chuyen gia toan. 
+                        - Giai chi tiet bang tieng Viet KHONG DAU.
+                        - Dung Latex $...$ cho cong thuc.
+                        - NEU LA BAI HINH HOC: Hay cung cap danh sach lenh GeoGebra (GGBScript) de ve hinh chinh xac.
+                        VD: A = (0, 0); B = (5, 0); C = (2, 4); Polygon(A, B, C); Segment(A, B)"""},
                         {"role": "user", "content": f"De: {user_input}. KQ: {wolf_res}"}
                     ],
                     model="llama-3.3-70b-versatile",
